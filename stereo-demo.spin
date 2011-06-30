@@ -82,10 +82,10 @@ PRI ReadWAVHeader | j
   if(format <> FORMAT_PCM)
     return false
 
-  if(channels <> 2)
+  if(channels <> 1 and channels <> 2)
     return false
 
-  if(bits <> 16)
+  if(bits <> 8 and bits <> 16 and bits <> 24 and bits <> 32)
     return false
 
   return true

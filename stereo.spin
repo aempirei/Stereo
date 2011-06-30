@@ -43,26 +43,26 @@ PUB start(_basepin, _rate, _channels, _bits, _b1, _b2, _bs) | status
   delta := clkfreq / rate
 
   cognew(@entry, 0)
-
+  
   status := 0
 
-PUB write(wordptr) | n
-
-  n := bs - 2
+PUB write(_ptr)
 
   repeat 
 
-    if word[b1 + n][0] == 0
-      longmove(b1, wordptr, bs >> 2)
+    if long[b1 + bs][-1] == zero
+      longmove(b1, _ptr, bs >> 2)
       return
   
-    elseif word[b2 + n][0] == 0
-      longmove(b2, wordptr, bs >> 2)
+    elseif long[b2 + bs][-1] == zero
+      longmove(b2, _ptr, bs >> 2)
       return
 
 DAT
 
 entry   org
+
+:init_ports
 
         or dira, pinmask1
         or dira, pinmask2
@@ -78,12 +78,79 @@ entry   org
 
         xor idxj, idxj
 
-:loop1
+:branch_table
+
+        cmp bits, #8 wz
+   if_e jmp #:entry8
+
+        cmp bits, #16 wz
+   if_e jmp #:entry16
+
+        cmp bits, #24 wz
+   if_e jmp #:entry24
+
+        cmp bits, #32 wz
+   if_e jmp #:entry32
+
+        ret
+
+:entry8
+
+:loop1_8
 
         mov idxi, #0
         xor idxj, neg1
 
-:loop2
+:loop2_8
+
+        waitcnt nexttime, delta
+
+        mov ptr, idxi           ' idxi is the relative byte offset to the current sample pair
+
+        cmp idxj, neg1 wz       ' select the current frame (b1 or b2)
+        
+   if_e add ptr, b1
+  if_ne add ptr, b2
+
+        rdbyte val, ptr         ' get new channel 1 frequency
+        wrbyte zero, ptr
+
+        shl val, #21
+
+        cmp val, zero wz
+   if_e add val, nominal
+
+        mov frqa, val
+
+        add ptr, #1             ' increment to channel 2
+
+        rdbyte val, ptr         ' get new channel 2 frequency
+        wrbyte zero, ptr
+
+        shl val, #21
+
+        cmp val, zero wz
+   if_e add val, nominal
+
+        adds val, unsign  
+
+        mov frqb, val
+
+        add idxi, #2            ' increment the idx by 2 (2 channels 8 bits at once) 
+        cmp idxi, bs wz
+'
+  if_ne jmp #:loop2_8
+
+        jmp #:loop1_8 
+
+:entry16
+           
+:loop1_16
+
+        mov idxi, #0
+        xor idxj, neg1
+
+:loop2_16
 
         waitcnt nexttime, delta
 
@@ -99,7 +166,11 @@ entry   org
 
         shl val, #16
         sar val, #3
-        adds val, nominal  
+
+        cmp val, zero wz
+   if_e add val, nominal
+     
+        adds val, unsign
 
         mov frqa, val
 
@@ -110,22 +181,133 @@ entry   org
 
         shl val, #16
         sar val, #3
-        adds val, nominal  
+
+        cmp val, zero wz
+   if_e add val, nominal
+
+        adds val, unsign  
 
         mov frqb, val
 
         add idxi, #4            ' increment the idx by 4 (2 channels 2 bytes at once) 
         cmp idxi, bs wz
 '
-  if_ne jmp #:loop2
+  if_ne jmp #:loop2_16
 
-        jmp #:loop1 
+        jmp #:loop1_16 
+
+:entry24
+
+:loop1_24
+
+        mov idxi, #0
+        xor idxj, neg1
+
+:loop2_24
+
+        waitcnt nexttime, delta
+
+        mov ptr, idxi           ' idxi is the relative byte offset to the current sample pair
+
+        cmp idxj, neg1 wz       ' select the current frame (b1 or b2)
+        
+   if_e add ptr, b1
+  if_ne add ptr, b2
+
+        rdword val, ptr         ' get new channel 1 frequency
+        wrword zero, ptr
+
+        shl val, #16
+        sar val, #3
+
+        cmp val, zero wz
+   if_e add val, nominal
+     
+        adds val, unsign
+
+        mov frqa, val
+
+        add ptr, #2             ' increment to channel 2
+
+        rdword val, ptr         ' get new channel 2 frequency
+        wrword zero, ptr
+
+        shl val, #16
+        sar val, #3
+
+        cmp val, zero wz
+   if_e add val, nominal
+
+        adds val, unsign  
+
+        mov frqb, val
+
+        add idxi, #4            ' increment the idx by 4 (2 channels 16 bits at once) 
+        cmp idxi, bs wz
+'
+  if_ne jmp #:loop2_24
+
+        jmp #:loop1_24 
+
+:entry32
+
+:loop1_32
+
+        mov idxi, #0
+        xor idxj, neg1
+
+:loop2_32
+
+        waitcnt nexttime, delta
+
+        mov ptr, idxi           ' idxi is the relative byte offset to the current sample pair
+
+        cmp idxj, neg1 wz       ' select the current frame (b1 or b2)
+        
+   if_e add ptr, b1
+  if_ne add ptr, b2
+
+        rdword val, ptr         ' get new channel 1 frequency
+        wrword zero, ptr
+
+        shl val, #16
+        sar val, #3
+
+        cmp val, zero wz
+   if_e add val, nominal
+     
+        adds val, unsign
+
+        mov frqa, val
+
+        add ptr, #2             ' increment to channel 2
+
+        rdword val, ptr         ' get new channel 2 frequency
+        wrword zero, ptr
+
+        shl val, #16
+        sar val, #3
+
+        cmp val, zero wz
+   if_e add val, nominal
+
+        adds val, unsign  
+
+        mov frqb, val
+
+        add idxi, #4            ' increment the idx by 4 (2 channels 2 bytes at once) 
+        cmp idxi, bs wz
+'
+  if_ne jmp #:loop2_32
+
+        jmp #:loop1_32 
 
 counter   long %00110 << 26
 
 delay     long 1_000_000
 
-nominal   long $0000_8000 << 13
+nominal   long $0000_0001
+unsign    long $0000_8000 << 13
          
 neg1      long -1
 zero      long 0
