@@ -1,0 +1,18 @@
+SPIN PCM audio driver
+Copyright(c) 2007-2011 Christopher Abad
+20 GOTO 10 | aempirei@gmail.com
+
+web  http://github.com/aempirei/Stereo
+git  git@github.com/aempirei/Stereo.git
+blog http://blog.twentygoto10.com/
+
+variable sample rate stable up to 44.1KHz
+16 bit unsigned
+2 channel
+
+this is a PCM unsigned 16-bit 2 channel driver, NOT A WAV PLAYER. This will be a
+full stereo WAV player in a few days. I haven't worked on this code in 4 years
+but I have some time right now to fix it up a bit.
+
+This code is loosely based on SPIN WAV Player Ver. 1a which only plays mono PCM
+WAV audio at 16KHz which was written by Raymond Allen.
