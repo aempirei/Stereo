@@ -41,11 +41,14 @@ OBJ
 
 PUB Main| j
 
-  sd.mount(0)
+  sd.mount(12)
 
   sd.popen(string("audio.bin"), "r")
 
-  stereo.start(16, 44_100, @buffer1, @buffer2, buffer_siz) 
+  stereo.start(8, 44_100, @buffer1, @buffer2, buffer_siz)
+
+  dira[7]~~
+  outa[7] := true
 
   j := buffer_siz * WORD_SIZ
 
@@ -55,4 +58,4 @@ PUB Main| j
     stereo.write(@pcm)
 
   sd.pclose
-   
+
