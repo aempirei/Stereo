@@ -23,3 +23,38 @@ closed-loop control system since ADC is possible via the Propeller also.
 
 This code is loosely based on SPIN WAV Player Ver. 1a which only plays mono PCM
 WAV audio at 16KHz which was written by Raymond Allen.
+
+Use SOX to generate raw files:
+
+sox -v 0.95 audio.mp3 -c 2 -b 16 -r 44100 -t u16 audio.bin
+
+Copy the audio.bin file to a FAT16 SD card in the root directory.
+
+Audio plays on the pins base+0 and base+1, where base is the first parameter to
+stereo.start(...) as demonstrated in stereo-demo.spin which currently is set to
+pin 8.
+
+Wiring the pins to a high-impedence headphones requires a simple RC filter:
+            
+          200ohm   220uf
+  PIN >---/\/\/\-+-|(---> OUT
+                 |
+                 +-||---| VSS/GND
+					    0.1uf
+
+Wiring an SD card requires 4 pins, which by default has a base of pin 12.
+Each pin must go to the SD card and to ground via a resistor:
+
+  PIN >--+--> SDCARD
+         |
+         +--/\/\/\---| VSS/GND
+
+  BASE+0 => SD 7/DO
+  BASE+1 => SD 5/CLK
+  BASE+2 => SD 2/DI
+  BASE+3 => SD 1/CS
+
+  VSS/GND => SD 3/VSS/GND
+  VSS/GND => SD 6/VSS/GND
+  VDD     => SD 4/VDD/V+
+
