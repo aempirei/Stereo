@@ -40,7 +40,7 @@ Wiring the pins to a high-impedence headphones requires a simple RC filter:
   PIN >---/\/\/\-+-|(---> OUT
                  |
                  +-||---| VSS/GND
-					    0.1uf
+                   0.1uf
 
 Wiring an SD card requires 4 pins, which by default has a base of pin 12.
 Each pin must go to the SD card and to ground via a resistor:
