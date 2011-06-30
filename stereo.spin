@@ -1,21 +1,12 @@
 {
 
- SPIN PCM audio driver
- Copyright(c) 2007 Christopher Abad
- 20 GOTO 10 Gallery
- 679 Geary St.
- San Francisco, CA 94102
- http://www.twentygoto10.com/
+ SPIN PCM audio device driver
+ Copyright(c) 2007-2011 Christopher Abad
+ 20 GOTO 10 | aempirei@gmail.com
 
  variable sample rate stable up to 44.1KHz
- 16 bit unsigned
- 2 channel
-
- this is a PCM unsigned 16-bit 2 channel driver, NOT A WAV PLAYER
-
- if you want this to play unsigned 16-bit 2 channel WAV files just forward past the header.
-
- loosely based on SPIN WAV Player Ver. 1a  (Plays only mono WAV at 16ksps) by Raymond Allen
+ u8 s16 s24 and s32 PCM sample sizes
+ 2 channel (stereo)
 
 }
 
@@ -115,7 +106,7 @@ entry   org
         rdbyte val, ptr         ' get new channel 1 frequency
         wrbyte zero, ptr
 
-        shl val, #21
+        shl val, #22
 
         cmp val, zero wz
    if_e add val, nominal
@@ -127,7 +118,7 @@ entry   org
         rdbyte val, ptr         ' get new channel 2 frequency
         wrbyte zero, ptr
 
-        shl val, #21
+        shl val, #22
 
         cmp val, zero wz
    if_e add val, nominal
@@ -165,7 +156,7 @@ entry   org
         wrword zero, ptr
 
         shl val, #16
-        sar val, #3
+        sar val, #2
 
         cmp val, zero wz
    if_e add val, nominal
@@ -180,7 +171,7 @@ entry   org
         wrword zero, ptr
 
         shl val, #16
-        sar val, #3
+        sar val, #2
 
         cmp val, zero wz
    if_e add val, nominal
@@ -214,11 +205,24 @@ entry   org
    if_e add ptr, b1
   if_ne add ptr, b2
 
-        rdword val, ptr         ' get new channel 1 frequency
-        wrword zero, ptr
+        rdbyte val, ptr
+        wrbyte zero, ptr
+        add    ptr, #1
 
-        shl val, #16
-        sar val, #3
+        rdbyte val2, ptr
+        shl    val2, #8
+        or     val, val2
+        wrbyte zero, ptr
+        add    ptr, #1
+
+        rdbyte val2, ptr
+        shl    val2, #16
+        or     val, val2
+        wrbyte zero, ptr
+        add    ptr, #1
+        
+        shl val, #8
+        sar val, #2
 
         cmp val, zero wz
    if_e add val, nominal
@@ -227,13 +231,24 @@ entry   org
 
         mov frqa, val
 
-        add ptr, #2             ' increment to channel 2
+        rdbyte val, ptr
+        wrbyte zero, ptr
+        add    ptr, #1
 
-        rdword val, ptr         ' get new channel 2 frequency
-        wrword zero, ptr
+        rdbyte val2, ptr
+        shl    val2, #8
+        or     val, val2
+        wrbyte zero, ptr
+        add    ptr, #1
 
-        shl val, #16
-        sar val, #3
+        rdbyte val2, ptr
+        shl    val2, #16
+        or     val, val2
+        wrbyte zero, ptr
+        add    ptr, #1
+        
+        shl val, #8
+        sar val, #2
 
         cmp val, zero wz
    if_e add val, nominal
@@ -242,7 +257,7 @@ entry   org
 
         mov frqb, val
 
-        add idxi, #4            ' increment the idx by 4 (2 channels 16 bits at once) 
+        add idxi, #6            ' increment the idx by 4 (2 channels 24 bits at once) 
         cmp idxi, bs wz
 '
   if_ne jmp #:loop2_24
@@ -267,11 +282,10 @@ entry   org
    if_e add ptr, b1
   if_ne add ptr, b2
 
-        rdword val, ptr         ' get new channel 1 frequency
-        wrword zero, ptr
+        rdlong val, ptr         ' get new channel 1 frequency
+        wrlong zero, ptr
 
-        shl val, #16
-        sar val, #3
+        sar val, #2
 
         cmp val, zero wz
    if_e add val, nominal
@@ -280,13 +294,12 @@ entry   org
 
         mov frqa, val
 
-        add ptr, #2             ' increment to channel 2
+        add ptr, #4             ' increment to channel 2
 
-        rdword val, ptr         ' get new channel 2 frequency
-        wrword zero, ptr
+        rdlong val, ptr         ' get new channel 2 frequency
+        wrlong zero, ptr
 
-        shl val, #16
-        sar val, #3
+        sar val, #2
 
         cmp val, zero wz
    if_e add val, nominal
@@ -295,7 +308,7 @@ entry   org
 
         mov frqb, val
 
-        add idxi, #4            ' increment the idx by 4 (2 channels 2 bytes at once) 
+        add idxi, #8            ' increment the idx by 8 (2 channels 32 bits at once) 
         cmp idxi, bs wz
 '
   if_ne jmp #:loop2_32
@@ -307,7 +320,7 @@ counter   long %00110 << 26
 delay     long 1_000_000
 
 nominal   long $0000_0001
-unsign    long $0000_8000 << 13
+unsign    long $2000_0000 ' fix this so there is no shift
          
 neg1      long -1
 zero      long 0
@@ -335,4 +348,4 @@ nexttime  res 1
 
 ptr       res 1
 val       res 1
- 
+val2      res 1 

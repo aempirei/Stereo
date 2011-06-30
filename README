@@ -1,4 +1,4 @@
-SPIN PCM audio driver
+SPIN PCM audio device driver
 Copyright(c) 2007-2011 Christopher Abad
 20 GOTO 10 | aempirei@gmail.com
 
@@ -7,28 +7,27 @@ git  git@github.com/aempirei/Stereo.git
 blog http://blog.twentygoto10.com/
 
 variable sample rate stable up to 44.1KHz
-16 bit unsigned
-2 channel
+u8 s16 s24 and s32 PCM sample sizes
+2 channel (stereo)
 
-This is a PCM unsigned 16-bit 2 channel driver, NOT A WAV PLAYER. This will be a
-full stereo WAV player in a few days. I haven't worked on this code in 4 years
-but I have some time right now to fix it up a bit. An interesting fact about
-these type of sound device drivers is that they operate using the PWM function
-of a special register set, and therefore are effectively Class D amplifiers or
-switching power supplies, albiet at low total power. Being quite accurate, this
-driver should easily translate into the first stage driving source and open
-loop control for a higher power switching device provided the right output stage.
-Just a little more code on top of that, and you should be able to build a full
-closed-loop control system since ADC is possible via the Propeller also.
+This is a PCM audio device driver with support for variable sample rates
+and bit sizes in 2-channel stereo. The demo code also comes with a full PCM
+WAV file decoder and FAT16 SD CARD access. I haven't worked on this code in 4
+years but I have some time right now to fix it up a bit. An interesting fact
+about these type of sound device drivers is that they operate using the PWM
+function of a special register set, and therefore are effectively Class D
+amplifiers or switching power supplies, albiet at low total power. Being quite
+accurate, this driver should easily translate into the first stage driving
+source and open loop control for a higher power switching device provided the
+right output stage.  Just a little more code on top of that, and you should be
+able to build a full closed-loop control system since ADC is possible via the
+Propeller also.
 
-This code is loosely based on SPIN WAV Player Ver. 1a which only plays mono PCM
-WAV audio at 16KHz which was written by Raymond Allen.
+Use SOX to generate WAV files:
 
-Use SOX to generate raw files:
+sox -v 0.95 audio.mp3 -c 2 -b 24 -r 42000 -t wav audio.wav
 
-sox -v 0.95 audio.mp3 -c 2 -b 16 -r 44100 -t u16 audio.bin
-
-Copy the audio.bin file to a FAT16 SD card in the root directory.
+Copy the audio.wav file to a FAT16 SD card in the root directory.
 
 Audio plays on the pins base+0 and base+1, where base is the first parameter to
 stereo.start(...) as demonstrated in stereo-demo.spin which currently is set to

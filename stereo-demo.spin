@@ -1,22 +1,15 @@
 {
 
- SPIN PCM audio driver demo
- Copyright(c) 2007 Christopher Abad
- 20 GOTO 10 Gallery
- 679 Geary St.
- San Francisco, CA 94102
- http://www.twentygoto10.com/
+ SPIN PCM audio device driver
+ Copyright(c) 2007-2011 Christopher Abad
+ 20 GOTO 10 | aempirei@gmail.com
 
- variable sample rate stable up to 44.1Khz
- 16 bit unsigned
- 2 channel
+ variable sample rate stable up to 44.1KHz
+ u8 s16 s24 and s32 PCM sample sizes
+ 2 channel (stereo)
 
- this is a PCM unsigned 16-bit 2 channel driver, NOT A WAV PLAYER
-
- if you want this to play unsigned 16-bit 2 channel WAV files just forward past the header.
-
- loosely based on SPIN WAV Player Ver. 1a  (Plays only mono WAV at 16ksps) by Raymond Allen
-
+ this demo code has full WAV file support for various bit sizes and sample rates
+ 
 }
 
 CON
@@ -28,15 +21,21 @@ CON
   
   BUFFER_SZ = 256 * 4 * 3
   HEADER_SZ = 44
+  EXT_SZ    = 24
+  FACT_SZ   = 12 
 
-  FORMAT_PCM = 1
+  FORMAT_PCM = $0001
+  FORMAT_EXT = $FFFE
+
+  DATA_OFFSET_PCM = 36
+  FACT_OFFSET_EXT = 60
 
 VAR
 
   byte buffer1[BUFFER_SZ]
   byte buffer2[BUFFER_SZ]
   byte pcm[BUFFER_SZ]
-  byte header[HEADER_SZ]
+  byte header[HEADER_SZ + EXT_SZ + FACT_SZ]
   
   word format
   word rate
@@ -58,39 +57,58 @@ PRI memcmp(left,right,length) | n
 
   return true
 
-PRI ReadWAVHeader | j
+PRI ReadWAVHeader
 
-  j := sd.pread(@header, HEADER_SZ)
-
-  if j <> HEADER_SZ
+  'verify basic WAV information--first two magic values
+  
+  if sd.pread(@header, HEADER_SZ) <> HEADER_SZ
     return false
 
-  if(!memcmp(@header, @magic1, 4))
+  if !memcmp(@header, @magic1, 4)
     return false
 
-  if(!memcmp(@header + 8, @magic2, 8))
-    return false
-    
-  if(!memcmp(@header + 36, @magic3, 4))
+  if !memcmp(@header + 8, @magic2, 8)
     return false
 
+  'get WAV configuration information
+  
   format := WORD[@header][10]
   channels := WORD[@header][11]
   rate := WORD[@header][12]
   bits := WORD[@header][17]
 
-  if(format <> FORMAT_PCM)
+  'verify WAV format
+  
+  if format <> FORMAT_PCM and format <> FORMAT_EXT
     return false
 
-  if(channels <> 1 and channels <> 2)
+  if channels <> 1 and channels <> 2
     return false
 
-  if(bits <> 8 and bits <> 16 and bits <> 24 and bits <> 32)
+  if bits <> 8 and bits <> 16 and bits <> 24 and bits <> 32
     return false
+
+  'if WAV has a simple extension seen in 24-bit and 32-bit WAV files, validate
+  
+  if format == FORMAT_PCM
+
+    if !memcmp(@header + DATA_OFFSET_PCM, @magic3, 4)
+      return false
+
+  elseif format == FORMAT_EXT
+
+    if sd.pread(@header + HEADER_SZ, EXT_SZ + FACT_SZ) <> EXT_SZ + FACT_SZ
+      return false
+
+    if !memcmp(@header + FACT_OFFSET_EXT, @magic4, 4)
+      return false
+
+    if !memcmp(@header + EXT_SZ + FACT_SZ + DATA_OFFSET_PCM, @magic3, 4)
+      return false
 
   return true
 
-PUB Main| j
+PUB Main | j
 
   sd.mount(12)
 
@@ -105,8 +123,6 @@ PUB Main| j
 
   dira[7]~~
   outa[7] := true
-
-  j := BUFFER_SZ
   
   repeat ' repeat until end of file
     j := sd.pread(@pcm, BUFFER_SZ)
@@ -119,3 +135,4 @@ DAT
         magic1          byte    "RIFF", 0
         magic2          byte    "WAVEfmt ", 0
         magic3          byte    "data", 0
+        magic4          byte    "fact", 0
