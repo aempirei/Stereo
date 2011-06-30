@@ -121,18 +121,18 @@ entry   org
 
         jmp #:loop1 
 
-counter  long %00110 << 26
+counter   long %00110 << 26
 
-delay    long 1_000_000
+delay     long 1_000_000
 
-nominal  long $0001_0000
+nominal   long $0001_0000
          
-neg1     long -1
-zero     long 0
+neg1      long -1
+zero      long 0
 
-rate     long 0
+rate      long 0
 
-delta    long 0
+delta     long 0
          
 pin1      long 0
 pin2      long 0
@@ -140,15 +140,15 @@ pin2      long 0
 pinmask1  long 0
 pinmask2  long 0
          
-bs       long 0 
-b1       long 0
-b2       long 0
+bs        long 0
+b1        long 0
+b2        long 0
 
-idxi    res 1
-idxj    res 1
+idxi      res 1
+idxj      res 1
 
-nexttime   res 1
+nexttime  res 1
 
-ptr    res 1
-val    res 1
+ptr       res 1
+val       res 1
  
