@@ -10,9 +10,16 @@ variable sample rate stable up to 44.1KHz
 16 bit unsigned
 2 channel
 
-this is a PCM unsigned 16-bit 2 channel driver, NOT A WAV PLAYER. This will be a
+This is a PCM unsigned 16-bit 2 channel driver, NOT A WAV PLAYER. This will be a
 full stereo WAV player in a few days. I haven't worked on this code in 4 years
-but I have some time right now to fix it up a bit.
+but I have some time right now to fix it up a bit. An interesting fact about
+these type of sound device drivers is that they operate using the PWM function
+of a special register set, and therefore are effectively Class D amplifiers or
+switching power supplies, albiet at low total power. Being quite accurate, this
+driver should easily translate into the first stage driving source and open
+loop control for a higher power switching device provided the right output stage.
+Just a little more code on top of that, and you should be able to build a full
+closed-loop control system since ADC is possible via the Propeller also.
 
 This code is loosely based on SPIN WAV Player Ver. 1a which only plays mono PCM
 WAV audio at 16KHz which was written by Raymond Allen.
