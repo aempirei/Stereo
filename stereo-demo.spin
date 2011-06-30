@@ -26,18 +26,18 @@ CON
 
   ' size of various structures in array size (not bytes)
   
-  BUFFER_SZ = 2048
-  WORD_SZ = 2
-  HEADER_SZ = 22
+  BUFFER_SZ = 256 * 4 * 3
+  HEADER_SZ = 44
 
   FORMAT_PCM = 1
 
 VAR
 
-  word buffer1[BUFFER_SZ]
-  word buffer2[BUFFER_SZ]
-  word pcm[BUFFER_SZ]
-  word header[HEADER_SZ]
+  byte buffer1[BUFFER_SZ]
+  byte buffer2[BUFFER_SZ]
+  byte pcm[BUFFER_SZ]
+  byte header[HEADER_SZ]
+  
   word format
   word rate
   word channels
@@ -60,9 +60,9 @@ PRI memcmp(left,right,length) | n
 
 PRI ReadWAVHeader | j
 
-  j := sd.pread(@header, HEADER_SZ * WORD_SZ)
+  j := sd.pread(@header, HEADER_SZ)
 
-  if j <> HEADER_SZ * WORD_SZ
+  if j <> HEADER_SZ
     return false
 
   if(!memcmp(@header, @magic1, 4))
@@ -74,10 +74,10 @@ PRI ReadWAVHeader | j
   if(!memcmp(@header + 36, @magic3, 4))
     return false
 
-  format := header[10]
-  channels := header[11]
-  rate := header[12]
-  bits := header[17]
+  format := WORD[@header][10]
+  channels := WORD[@header][11]
+  rate := WORD[@header][12]
+  bits := WORD[@header][17]
 
   if(format <> FORMAT_PCM)
     return false
@@ -106,12 +106,12 @@ PUB Main| j
   dira[7]~~
   outa[7] := true
 
-  j := BUFFER_SZ * WORD_SZ
-
-  repeat while (j == BUFFER_SZ * WORD_SZ)    'repeat until end of file
-
-    j := sd.pread(@pcm, BUFFER_SZ * WORD_SZ)
+  j := BUFFER_SZ
+  
+  repeat ' repeat until end of file
+    j := sd.pread(@pcm, BUFFER_SZ)
     stereo.write(@pcm)
+  while j == BUFFER_SZ
 
   sd.pclose
 

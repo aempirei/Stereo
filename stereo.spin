@@ -27,8 +27,8 @@ PUB start(_basepin, _rate, _channels, _bits, _b1, _b2, _bs) | status
   b1 := _b1
   b2 := _b2
 
-  wordfill(b1, 0, bs)
-  wordfill(b2, 0, bs)
+  bytefill(b1, 0, bs)
+  bytefill(b2, 0, bs)
 
   pin1 := _basepin
   pin2 := _basepin + 1
@@ -48,16 +48,16 @@ PUB start(_basepin, _rate, _channels, _bits, _b1, _b2, _bs) | status
 
 PUB write(wordptr) | n
 
-  n := bs - 1
+  n := bs - 2
 
   repeat 
 
-    if word[b1][n] == 0
-      wordmove(b1, wordptr, bs)
+    if word[b1 + n][0] == 0
+      longmove(b1, wordptr, bs >> 2)
       return
   
-    elseif word[b2][n] == 0
-      wordmove(b2, wordptr, bs)
+    elseif word[b2 + n][0] == 0
+      longmove(b2, wordptr, bs >> 2)
       return
 
 DAT
@@ -87,8 +87,7 @@ entry   org
 
         waitcnt nexttime, delta
 
-        mov ptr, idxi           ' 2 * idxi is the relative byte offset to the current
-        shl ptr, #1             ' WORD (which hopefully lands on a proper pair)
+        mov ptr, idxi           ' idxi is the relative byte offset to the current sample pair
 
         cmp idxj, neg1 wz       ' select the current frame (b1 or b2)
         
@@ -115,7 +114,7 @@ entry   org
 
         mov frqb, val
 
-        add idxi, #2            ' increment the idx by 2 (2 channels at once) 
+        add idxi, #4            ' increment the idx by 4 (2 channels 2 bytes at once) 
         cmp idxi, bs wz
 '
   if_ne jmp #:loop2
