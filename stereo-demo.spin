@@ -101,7 +101,7 @@ PUB Main| j
   if(!ReadWAVHeader)
     return
   
-  stereo.start(8, rate, @buffer1, @buffer2, BUFFER_SZ)
+  stereo.start(8, rate, channels, bits, @buffer1, @buffer2, BUFFER_SZ)
 
   dira[7]~~
   outa[7] := true

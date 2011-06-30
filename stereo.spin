@@ -20,19 +20,15 @@
 }
 
 CON
-
-  CHANNELS = 2
-  BITS     = 16
   
-PUB start(_basepin, _rate, _b1, _b2, _bs) | status
+PUB start(_basepin, _rate, _channels, _bits, _b1, _b2, _bs) | status
 
   bs := _bs
   b1 := _b1
   b2 := _b2
 
-  longfill(b1, 0, bs)
-  longfill(b2, 0, bs)
-
+  wordfill(b1, 0, bs)
+  wordfill(b2, 0, bs)
 
   pin1 := _basepin
   pin2 := _basepin + 1
@@ -41,6 +37,9 @@ PUB start(_basepin, _rate, _b1, _b2, _bs) | status
   pinmask2 := |< pin2
 
   rate := _rate
+  channels := _channels
+  bits := _bits
+  
   delta := clkfreq / rate
 
   cognew(@entry, 0)
@@ -99,8 +98,9 @@ entry   org
         rdword val, ptr         ' get new channel 1 frequency
         wrword zero, ptr
 
-        shl val, #13
-        add val, nominal  
+        shl val, #16
+        sar val, #3
+        adds val, nominal  
 
         mov frqa, val
 
@@ -109,8 +109,9 @@ entry   org
         rdword val, ptr         ' get new channel 2 frequency
         wrword zero, ptr
 
-        shl val, #13
-        add val, nominal  
+        shl val, #16
+        sar val, #3
+        adds val, nominal  
 
         mov frqb, val
 
@@ -125,12 +126,14 @@ counter   long %00110 << 26
 
 delay     long 1_000_000
 
-nominal   long $0001_0000
+nominal   long $0000_8000 << 13
          
 neg1      long -1
 zero      long 0
 
 rate      long 0
+channels  long 0
+bits      long 0
 
 delta     long 0
          
