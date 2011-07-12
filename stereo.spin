@@ -11,7 +11,7 @@
 }
 
 CON
-  
+
 PUB start(_basepin, _rate, _channels, _bits, _b1, _b2, _bs) | status
 
   bs := _bs
@@ -30,21 +30,21 @@ PUB start(_basepin, _rate, _channels, _bits, _b1, _b2, _bs) | status
   rate := _rate
   channels := _channels
   bits := _bits
-  
+
   delta := clkfreq / rate
 
   cognew(@entry, 0)
-  
+
   status := 0
 
 PUB write(_ptr)
 
-  repeat 
+  repeat
 
     if long[b1 + bs][-1] == zero
       longmove(b1, _ptr, bs >> 2)
       return
-  
+
     elseif long[b2 + bs][-1] == zero
       longmove(b2, _ptr, bs >> 2)
       return
@@ -57,7 +57,7 @@ entry   org
 
         or dira, pinmask1
         or dira, pinmask2
-        
+
         mov ctra, counter
         add ctra, pin1
 
@@ -99,7 +99,7 @@ entry   org
         mov ptr, idxi           ' idxi is the relative byte offset to the current sample pair
 
         cmp idxj, neg1 wz       ' select the current frame (b1 or b2)
-        
+
    if_e add ptr, b1
   if_ne add ptr, b2
 
@@ -123,19 +123,19 @@ entry   org
         cmp val, zero wz
    if_e add val, nominal
 
-        adds val, unsign  
+        adds val, unsign
 
         mov frqb, val
 
-        add idxi, #2            ' increment the idx by 2 (2 channels 8 bits at once) 
+        add idxi, #2            ' increment the idx by 2 (2 channels 8 bits at once)
         cmp idxi, bs wz
 '
   if_ne jmp #:loop2_8
 
-        jmp #:loop1_8 
+        jmp #:loop1_8
 
 :entry16
-           
+
 :loop1_16
 
         mov idxi, #0
@@ -148,7 +148,7 @@ entry   org
         mov ptr, idxi           ' idxi is the relative byte offset to the current sample pair
 
         cmp idxj, neg1 wz       ' select the current frame (b1 or b2)
-        
+
    if_e add ptr, b1
   if_ne add ptr, b2
 
@@ -160,7 +160,7 @@ entry   org
 
         cmp val, zero wz
    if_e add val, nominal
-     
+
         adds val, unsign
 
         mov frqa, val
@@ -176,16 +176,16 @@ entry   org
         cmp val, zero wz
    if_e add val, nominal
 
-        adds val, unsign  
+        adds val, unsign
 
         mov frqb, val
 
-        add idxi, #4            ' increment the idx by 4 (2 channels 2 bytes at once) 
+        add idxi, #4            ' increment the idx by 4 (2 channels 2 bytes at once)
         cmp idxi, bs wz
 '
   if_ne jmp #:loop2_16
 
-        jmp #:loop1_16 
+        jmp #:loop1_16
 
 :entry24
 
@@ -201,7 +201,7 @@ entry   org
         mov ptr, idxi           ' idxi is the relative byte offset to the current sample pair
 
         cmp idxj, neg1 wz       ' select the current frame (b1 or b2)
-        
+
    if_e add ptr, b1
   if_ne add ptr, b2
 
@@ -220,13 +220,13 @@ entry   org
         or     val, val2
         wrbyte zero, ptr
         add    ptr, #1
-        
+
         shl val, #8
         sar val, #2
 
         cmp val, zero wz
    if_e add val, nominal
-     
+
         adds val, unsign
 
         mov frqa, val
@@ -246,23 +246,23 @@ entry   org
         or     val, val2
         wrbyte zero, ptr
         add    ptr, #1
-        
+
         shl val, #8
         sar val, #2
 
         cmp val, zero wz
    if_e add val, nominal
 
-        adds val, unsign  
+        adds val, unsign
 
         mov frqb, val
 
-        add idxi, #6            ' increment the idx by 4 (2 channels 24 bits at once) 
+        add idxi, #6            ' increment the idx by 4 (2 channels 24 bits at once)
         cmp idxi, bs wz
 '
   if_ne jmp #:loop2_24
 
-        jmp #:loop1_24 
+        jmp #:loop1_24
 
 :entry32
 
@@ -278,7 +278,7 @@ entry   org
         mov ptr, idxi           ' idxi is the relative byte offset to the current sample pair
 
         cmp idxj, neg1 wz       ' select the current frame (b1 or b2)
-        
+
    if_e add ptr, b1
   if_ne add ptr, b2
 
@@ -289,7 +289,7 @@ entry   org
 
         cmp val, zero wz
    if_e add val, nominal
-     
+
         adds val, unsign
 
         mov frqa, val
@@ -304,16 +304,16 @@ entry   org
         cmp val, zero wz
    if_e add val, nominal
 
-        adds val, unsign  
+        adds val, unsign
 
         mov frqb, val
 
-        add idxi, #8            ' increment the idx by 8 (2 channels 32 bits at once) 
+        add idxi, #8            ' increment the idx by 8 (2 channels 32 bits at once)
         cmp idxi, bs wz
 '
   if_ne jmp #:loop2_32
 
-        jmp #:loop1_32 
+        jmp #:loop1_32
 
 counter   long %00110 << 26
 
@@ -321,7 +321,7 @@ delay     long 1_000_000
 
 nominal   long $0000_0001
 unsign    long $2000_0000 ' fix this so there is no shift
-         
+
 neg1      long -1
 zero      long 0
 
@@ -330,13 +330,13 @@ channels  long 0
 bits      long 0
 
 delta     long 0
-         
+
 pin1      long 0
 pin2      long 0
 
 pinmask1  long 0
 pinmask2  long 0
-         
+
 bs        long 0
 b1        long 0
 b2        long 0
@@ -348,4 +348,4 @@ nexttime  res 1
 
 ptr       res 1
 val       res 1
-val2      res 1 
+val2      res 1

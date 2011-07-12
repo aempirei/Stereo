@@ -23,6 +23,8 @@ right output stage.  Just a little more code on top of that, and you should be
 able to build a full closed-loop control system since ADC is possible via the
 Propeller also.
 
+The SD CARD code now supports the Spinneret MicroSD configuration.
+
 Use SOX to generate WAV files:
 
 sox -v 0.95 audio.mp3 -c 2 -b 24 -r 42000 -t wav audio.wav
